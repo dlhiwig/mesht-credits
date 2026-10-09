@@ -1,20 +1,13 @@
-# Phase 2 — Local mesh transport
+# Phase 2 — Protocol simulation
 
-**Status:** Implemented on `main`. No radios.
+**Date:** 2026-10-09
+**Status:** Complete in simulation. No radios.
 
-Phase 2 is a signed envelope and an in-process delivery simulator. Meshtastic is still a later transport, not this phase.
+## Evidence
 
-## What shipped
+- Canonical envelope encoding in `mesh.py`.
+- Signed operator receipts covering `msg_id` and `tx_hash`.
+- Packet-loss simulator with retry. `test_phase12.py` uses an 80 percent drop rate and still reaches one apply.
+- Threat model: `PHASE-2-THREAT-MODEL.md`.
 
-- `mesh.py` seals a transfer in a versioned envelope signed by the sender.
-- `LocalMesh` verifies the envelope, drops or duplicates by configured rate, and submits the payload once.
-- Duplicate `msg_id` does not apply twice.
-- Sequence rules still reject a sender's transfer until the previous sequence exists. Reorder is safe only after retry.
-
-## Test
-
-`test_phases.py::test_mesh_drop_reorder_duplicate` — 10 transfers, forced duplicates, zero system sum, chain verifies.
-
-## Not in this phase
-
-Physical LoRa, Meshtastic channels, store-and-forward across devices.
+Meshtastic, LoRa hardware, and channel keys are Phase 3, not this phase.

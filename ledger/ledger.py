@@ -252,12 +252,6 @@ class Ledger:
         if self._conn.execute("SELECT 1 FROM transactions WHERE tx_id = ?", (tx["tx_id"],)).fetchone():
             raise ValueError("duplicate tx_id")
 
-        frozen = self._conn.execute(
-            "SELECT frozen FROM member_state WHERE member_id = ?", (tx["sender"],)
-        ).fetchone()
-        if frozen and int(frozen["frozen"]) == 1:
-            raise ValueError(f"sender frozen: {tx['sender']}")
-
         # credit limit (sender may go negative up to credit_limit)
         sender_bal = self.get_balance(tx["sender"])
         new_sender_bal = sender_bal - tx["amount"]
@@ -272,28 +266,39 @@ class Ledger:
         now = datetime.now(timezone.utc).isoformat()
 
         try:
-            with self._conn:
-                self._conn.execute(
-                    """INSERT INTO transactions
-                       (tx_id, sender, recipient, amount, currency, sequence, timestamp,
-                        signature, prev_hash, tx_hash, applied_at)
-                       VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
-                    (
-                        tx["tx_id"], tx["sender"], tx["recipient"], tx["amount"],
-                        tx["currency"], tx["sequence"], tx["timestamp"],
-                        tx["signature"], prev, tx_hash, now,
-                    ),
-                )
-                self._conn.execute(
-                    "UPDATE balances SET balance = balance - ? WHERE member_id = ?",
-                    (tx["amount"], tx["sender"]),
-                )
-                self._conn.execute(
-                    "UPDATE balances SET balance = balance + ? WHERE member_id = ?",
-                    (tx["amount"], tx["recipient"]),
-                )
+            self._conn.execute("BEGIN IMMEDIATE")
+            frozen = self._conn.execute(
+                "SELECT frozen FROM member_state WHERE member_id = ?", (tx["sender"],)
+            ).fetchone()
+            if frozen and int(frozen["frozen"]) == 1:
+                self._conn.rollback()
+                raise ValueError(f"sender frozen: {tx['sender']}")
+            self._conn.execute(
+                """INSERT INTO transactions
+                   (tx_id, sender, recipient, amount, currency, sequence, timestamp,
+                    signature, prev_hash, tx_hash, applied_at)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+                (
+                    tx["tx_id"], tx["sender"], tx["recipient"], tx["amount"],
+                    tx["currency"], tx["sequence"], tx["timestamp"],
+                    tx["signature"], prev, tx_hash, now,
+                ),
+            )
+            self._conn.execute(
+                "UPDATE balances SET balance = balance - ? WHERE member_id = ?",
+                (tx["amount"], tx["sender"]),
+            )
+            self._conn.execute(
+                "UPDATE balances SET balance = balance + ? WHERE member_id = ?",
+                (tx["amount"], tx["recipient"]),
+            )
+            self._conn.commit()
         except sqlite3.IntegrityError as e:
+            self._conn.rollback()
             raise ValueError(f"constraint violation: {e}") from e
+        except Exception:
+            self._conn.rollback()
+            raise
 
         return {
             "tx_id": tx["tx_id"],
@@ -472,6 +477,17 @@ class Ledger:
         canonical = json.dumps(body, sort_keys=True, separators=(",", ":")).encode()
         body["checkpoint_hash"] = hashlib.sha256(canonical).hexdigest()
         return body
+
+
+    def verify_checkpoint(self, checkpoint: dict) -> bool:
+        """Independent check: retained checkpoint must match a fresh export."""
+        fresh = self.export_checkpoint()
+        retained = {k: checkpoint[k] for k in ("tip", "tx_count", "system_sum", "members")}
+        current = {k: fresh[k] for k in ("tip", "tx_count", "system_sum", "members")}
+        if retained != current:
+            return False
+        canonical = json.dumps(retained, sort_keys=True, separators=(",", ":")).encode()
+        return hashlib.sha256(canonical).hexdigest() == checkpoint.get("checkpoint_hash")
 
     def reconcile(self) -> dict:
         return {
