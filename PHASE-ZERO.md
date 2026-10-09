@@ -2,7 +2,8 @@
 
 **Repository:** [dlhiwig/mesht-credits](https://github.com/dlhiwig/mesht-credits)  
 **Report date:** 2026-10-09  
-**`main` tip:** `c93cb0e` — Python ledger core and rewritten README  
+**Code baseline before this report:** `c93cb0e` — Python ledger core and rewritten README  
+**Phase Zero report commit:** `49c1c8f` — `docs: add Phase Zero report`  
 **Status:** Design settled. Two ledger cores exist. Neither draft is merged. Not production-ready.
 
 Phase Zero is the work before radios, hardware, or live members: name the system, fix the accounting model, prove a single authoritative ledger can accept authenticated transfers without discrepancies, and record what is still open.
@@ -160,3 +161,11 @@ Phase Zero is done when all of these are true:
 - README states that Meshtastic is next, not current.
 
 Until then, Phase Zero is **open**. The simulation milestone is met. The integrity and single-implementation work is not.
+
+## Status clarification and next implementation gate
+
+The Phase Zero report was committed on `main` as `49c1c8f`; therefore `c93cb0e` is the preceding Python-ledger code baseline, not the current `main` tip. Future commits will advance `main` without changing the historical baseline recorded here.
+
+**Next implementation milestone (M2.1):** select one canonical ledger implementation, make all governance mutations authenticated and replayable from the journal, enforce account freezes atomically with transfers, add external checkpoint export and independent verification, and prove power-loss recovery and concurrent-writer safety with automated tests. Require green CI on the selected implementation before declaring Phase Zero complete. Meshtastic transport and physical hardware remain deferred.
+
+**Merge policy:** PR #1 (Rust) and PR #2 (Python governance) remain independent draft proposals. Do not merge both as competing authoritative cores; reconcile the implementation decision and protocol compatibility first.
