@@ -56,16 +56,23 @@ class LocalMesh:
     dropped: list[str] = field(default_factory=list)
 
     def deliver(self, env: dict) -> str:
+        if env["version"] != 1:
+            raise ValueError("unsupported envelope version")
+        if env["kind"] != "transfer":
+            raise ValueError("unsupported envelope kind")
+        if env["payload"]["sender"] != env["sender"]:
+            raise ValueError("envelope sender mismatch")
+        if env["sender"] not in self.keys:
+            raise ValueError("unknown envelope sender")
         open_envelope(env, self.keys[env["sender"]])
         if env["msg_id"] in self.seen:
             return "duplicate"
         if self.rng.random() < self.drop_rate:
             self.dropped.append(env["msg_id"])
             return "dropped"
-        self.seen.add(env["msg_id"])
-        if env["kind"] != "transfer":
-            raise ValueError(f"unsupported kind {env['kind']}")
+        # Rejected out-of-order transfers must remain retryable.
         self.ledger.submit(env["payload"])
+        self.seen.add(env["msg_id"])
         self.applied.append(env["msg_id"])
         if self.rng.random() < self.dup_rate:
             return self.deliver(env)
