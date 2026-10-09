@@ -17,7 +17,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="mesht-credits Phase 4 operator CLI")
     parser.add_argument("--db", default="mesht.db")
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("keygen")
+    keygen = sub.add_parser("keygen")
+    keygen.add_argument("--out", required=True, help="New private key file; created with mode 0600")
     enroll = sub.add_parser("enroll")
     enroll.add_argument("--id", required=True)
     enroll.add_argument("--public-key", required=True)
@@ -31,14 +32,20 @@ def main() -> None:
     freeze.add_argument("--admin-key", required=True)
     freeze.add_argument("--admin-id", required=True)
     freeze.add_argument("--member", required=True)
+    checkpoint = sub.add_parser("checkpoint")
+    checkpoint.add_argument("--out", required=True, help="Write checkpoint JSON to file")
     sub.add_parser("reconcile")
     args = parser.parse_args()
 
     if args.command == "keygen":
+        import os
         sk = SigningKey.generate()
+        fd = os.open(args.out, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, "wb") as output:
+            output.write(sk.encode())
         print(json.dumps({
             "public_key": sk.verify_key.encode(encoder=Base64Encoder).decode(),
-            "private_key_b64": Base64Encoder.encode(sk.encode()).decode(),
+            "private_key_file": args.out,
         }))
         return
 
@@ -61,6 +68,13 @@ def main() -> None:
             event = sign_governance(sk, args.admin_id, "freeze", args.member, "", int(seq))
             pk = sk.verify_key.encode(encoder=Base64Encoder).decode()
             print(json.dumps(ledger.apply_governance(event, pk)))
+        elif args.command == "checkpoint":
+            import os
+            cp = ledger.export_checkpoint()
+            with open(args.out, "x", encoding="utf-8") as output:
+                json.dump(cp, output, sort_keys=True, indent=2)
+                output.write("\\n")
+            print(json.dumps({"checkpoint_file": args.out, "checkpoint_hash": cp["checkpoint_hash"]}))
         elif args.command == "reconcile":
             print(json.dumps(ledger.reconcile(), indent=2))
     finally:
