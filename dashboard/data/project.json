@@ -1,0 +1,459 @@
+{
+  "version": 1,
+  "updated": "2026-10-09",
+  "phases": [
+    {
+      "id": "P0",
+      "name": "Foundations"
+    },
+    {
+      "id": "P1",
+      "name": "Ledger integrity"
+    },
+    {
+      "id": "P2",
+      "name": "Protocol simulation"
+    },
+    {
+      "id": "P3",
+      "name": "Hardware integration"
+    },
+    {
+      "id": "P4",
+      "name": "Controlled pilot"
+    },
+    {
+      "id": "P5",
+      "name": "Release readiness"
+    }
+  ],
+  "gates": [
+    {
+      "id": "G01",
+      "phase": "P0",
+      "name": "Mutual-credit rules documented",
+      "status": "passed",
+      "owner": "Ledger / security engineering",
+      "evidence": "PHASE-ZERO.md",
+      "acceptance": "Demonstrate mutual-credit rules documented with reviewed test or approval evidence"
+    },
+    {
+      "id": "G02",
+      "phase": "P0",
+      "name": "100 signed transfers verified",
+      "status": "passed",
+      "owner": "Ledger / security engineering",
+      "evidence": "test_milestone.py",
+      "acceptance": "Demonstrate 100 signed transfers verified with reviewed test or approval evidence"
+    },
+    {
+      "id": "G03",
+      "phase": "P0",
+      "name": "Canonical ledger chosen",
+      "status": "partial",
+      "owner": "Ledger / security engineering",
+      "evidence": "PHASE-ZERO.md",
+      "acceptance": "Demonstrate canonical ledger chosen with reviewed test or approval evidence"
+    },
+    {
+      "id": "G04",
+      "phase": "P0",
+      "name": "Signed governance replay",
+      "status": "blocked",
+      "owner": "Ledger / security engineering",
+      "evidence": "PHASE-ZERO.md",
+      "acceptance": "Demonstrate signed governance replay with reviewed test or approval evidence"
+    },
+    {
+      "id": "G05",
+      "phase": "P0",
+      "name": "External checkpoints",
+      "status": "blocked",
+      "owner": "Ledger / security engineering",
+      "evidence": "PHASE-ZERO.md",
+      "acceptance": "Demonstrate external checkpoints with reviewed test or approval evidence"
+    },
+    {
+      "id": "G06",
+      "phase": "P0",
+      "name": "Crash and concurrency tests",
+      "status": "blocked",
+      "owner": "Ledger / security engineering",
+      "evidence": "PHASE-ZERO.md",
+      "acceptance": "Demonstrate crash and concurrency tests with reviewed test or approval evidence"
+    },
+    {
+      "id": "G07",
+      "phase": "P0",
+      "name": "Python CI green",
+      "status": "blocked",
+      "owner": "Ledger / security engineering",
+      "evidence": "PHASE-ZERO.md",
+      "acceptance": "Demonstrate python ci green with reviewed test or approval evidence"
+    },
+    {
+      "id": "G08",
+      "phase": "P0",
+      "name": "Transport deferred",
+      "status": "partial",
+      "owner": "Ledger / security engineering",
+      "evidence": "PHASE-ZERO.md",
+      "acceptance": "Demonstrate transport deferred with reviewed test or approval evidence"
+    },
+    {
+      "id": "G09",
+      "phase": "P1",
+      "name": "Governance integration",
+      "status": "blocked",
+      "owner": "Ledger / security engineering",
+      "evidence": "PHASE-1-PLAN.md",
+      "acceptance": "Demonstrate governance integration with reviewed test or approval evidence"
+    },
+    {
+      "id": "G10",
+      "phase": "P1",
+      "name": "Atomic freezes",
+      "status": "blocked",
+      "owner": "Ledger / security engineering",
+      "evidence": "PHASE-1-PLAN.md",
+      "acceptance": "Demonstrate atomic freezes with reviewed test or approval evidence"
+    },
+    {
+      "id": "G11",
+      "phase": "P1",
+      "name": "Journal state replay",
+      "status": "blocked",
+      "owner": "Ledger / security engineering",
+      "evidence": "PHASE-1-PLAN.md",
+      "acceptance": "Demonstrate journal state replay with reviewed test or approval evidence"
+    },
+    {
+      "id": "G12",
+      "phase": "P1",
+      "name": "Append-only controls",
+      "status": "blocked",
+      "owner": "Ledger / security engineering",
+      "evidence": "PHASE-1-PLAN.md",
+      "acceptance": "Demonstrate append-only controls with reviewed test or approval evidence"
+    },
+    {
+      "id": "G13",
+      "phase": "P1",
+      "name": "Checkpoint verifier",
+      "status": "blocked",
+      "owner": "Ledger / security engineering",
+      "evidence": "PHASE-1-PLAN.md",
+      "acceptance": "Demonstrate checkpoint verifier with reviewed test or approval evidence"
+    },
+    {
+      "id": "G14",
+      "phase": "P1",
+      "name": "Fault injection suite",
+      "status": "blocked",
+      "owner": "Ledger / security engineering",
+      "evidence": "PHASE-1-PLAN.md",
+      "acceptance": "Demonstrate fault injection suite with reviewed test or approval evidence"
+    },
+    {
+      "id": "G15",
+      "phase": "P1",
+      "name": "Python CI on main",
+      "status": "blocked",
+      "owner": "Ledger / security engineering",
+      "evidence": "PHASE-1-PLAN.md",
+      "acceptance": "Demonstrate python ci on main with reviewed test or approval evidence"
+    },
+    {
+      "id": "G16",
+      "phase": "P2",
+      "name": "Canonical message encoding",
+      "status": "not_started",
+      "owner": "Protocol engineering",
+      "evidence": null,
+      "acceptance": "Demonstrate canonical message encoding with reviewed test or approval evidence"
+    },
+    {
+      "id": "G17",
+      "phase": "P2",
+      "name": "Signed receipts",
+      "status": "not_started",
+      "owner": "Protocol engineering",
+      "evidence": null,
+      "acceptance": "Demonstrate signed receipts with reviewed test or approval evidence"
+    },
+    {
+      "id": "G18",
+      "phase": "P2",
+      "name": "Packet-loss simulator",
+      "status": "not_started",
+      "owner": "Protocol engineering",
+      "evidence": null,
+      "acceptance": "Demonstrate packet-loss simulator with reviewed test or approval evidence"
+    },
+    {
+      "id": "G19",
+      "phase": "P2",
+      "name": "Transport threat model",
+      "status": "not_started",
+      "owner": "Protocol engineering",
+      "evidence": null,
+      "acceptance": "Demonstrate transport threat model with reviewed test or approval evidence"
+    },
+    {
+      "id": "G20",
+      "phase": "P3",
+      "name": "Hardware bill of materials",
+      "status": "not_started",
+      "owner": "Systems engineering",
+      "evidence": null,
+      "acceptance": "Demonstrate hardware bill of materials with reviewed test or approval evidence"
+    },
+    {
+      "id": "G21",
+      "phase": "P3",
+      "name": "Offline radio transfer",
+      "status": "not_started",
+      "owner": "Systems engineering",
+      "evidence": null,
+      "acceptance": "Demonstrate offline radio transfer with reviewed test or approval evidence"
+    },
+    {
+      "id": "G22",
+      "phase": "P3",
+      "name": "Power-loss on hardware",
+      "status": "not_started",
+      "owner": "Systems engineering",
+      "evidence": null,
+      "acceptance": "Demonstrate power-loss on hardware with reviewed test or approval evidence"
+    },
+    {
+      "id": "G23",
+      "phase": "P3",
+      "name": "Radio reliability report",
+      "status": "not_started",
+      "owner": "Systems engineering",
+      "evidence": null,
+      "acceptance": "Demonstrate radio reliability report with reviewed test or approval evidence"
+    },
+    {
+      "id": "G24",
+      "phase": "P4",
+      "name": "Member onboarding",
+      "status": "not_started",
+      "owner": "Operations / governance",
+      "evidence": null,
+      "acceptance": "Demonstrate member onboarding with reviewed test or approval evidence"
+    },
+    {
+      "id": "G25",
+      "phase": "P4",
+      "name": "Dispute and reconciliation",
+      "status": "not_started",
+      "owner": "Operations / governance",
+      "evidence": null,
+      "acceptance": "Demonstrate dispute and reconciliation with reviewed test or approval evidence"
+    },
+    {
+      "id": "G26",
+      "phase": "P4",
+      "name": "Controlled test-credit pilot",
+      "status": "not_started",
+      "owner": "Operations / governance",
+      "evidence": null,
+      "acceptance": "Demonstrate controlled test-credit pilot with reviewed test or approval evidence"
+    },
+    {
+      "id": "G27",
+      "phase": "P4",
+      "name": "Incident response drill",
+      "status": "not_started",
+      "owner": "Operations / governance",
+      "evidence": null,
+      "acceptance": "Demonstrate incident response drill with reviewed test or approval evidence"
+    },
+    {
+      "id": "G28",
+      "phase": "P5",
+      "name": "Independent security review",
+      "status": "not_started",
+      "owner": "Leadership / assurance",
+      "evidence": null,
+      "acceptance": "Demonstrate independent security review with reviewed test or approval evidence"
+    },
+    {
+      "id": "G29",
+      "phase": "P5",
+      "name": "Legal and tax approval",
+      "status": "not_started",
+      "owner": "Leadership / assurance",
+      "evidence": null,
+      "acceptance": "Demonstrate legal and tax approval with reviewed test or approval evidence"
+    },
+    {
+      "id": "G30",
+      "phase": "P5",
+      "name": "Operations and backup support",
+      "status": "not_started",
+      "owner": "Leadership / assurance",
+      "evidence": null,
+      "acceptance": "Demonstrate operations and backup support with reviewed test or approval evidence"
+    },
+    {
+      "id": "G31",
+      "phase": "P5",
+      "name": "Release go/no-go",
+      "status": "not_started",
+      "owner": "Leadership / assurance",
+      "evidence": null,
+      "acceptance": "Demonstrate release go/no-go with reviewed test or approval evidence"
+    }
+  ],
+  "risks": [
+    {
+      "id": "R1",
+      "name": "Competing ledger implementations",
+      "likelihood": 3,
+      "impact": 5,
+      "owner": "Tech lead",
+      "mitigation": "Select canonical Python and shared vectors",
+      "status": "open"
+    },
+    {
+      "id": "R2",
+      "name": "Freeze/transfer race",
+      "likelihood": 4,
+      "impact": 5,
+      "owner": "Ledger",
+      "mitigation": "Enforce freeze atomically",
+      "status": "open"
+    },
+    {
+      "id": "R3",
+      "name": "Unreplayable governance state",
+      "likelihood": 4,
+      "impact": 5,
+      "owner": "Ledger",
+      "mitigation": "Journal-first state rebuild",
+      "status": "open"
+    },
+    {
+      "id": "R4",
+      "name": "No independent checkpoint",
+      "likelihood": 4,
+      "impact": 5,
+      "owner": "Security",
+      "mitigation": "Retain signed off-node anchors",
+      "status": "open"
+    },
+    {
+      "id": "R5",
+      "name": "Mutable journal",
+      "likelihood": 4,
+      "impact": 5,
+      "owner": "Security",
+      "mitigation": "Reject UPDATE and DELETE",
+      "status": "open"
+    },
+    {
+      "id": "R6",
+      "name": "Crash injection absent",
+      "likelihood": 3,
+      "impact": 4,
+      "owner": "QA",
+      "mitigation": "Kill-process test suite",
+      "status": "open"
+    },
+    {
+      "id": "R7",
+      "name": "No Python CI",
+      "likelihood": 4,
+      "impact": 3,
+      "owner": "DevOps",
+      "mitigation": "GitHub Actions on main",
+      "status": "open"
+    },
+    {
+      "id": "R8",
+      "name": "Signing key loss",
+      "likelihood": 3,
+      "impact": 5,
+      "owner": "Security",
+      "mitigation": "Key recovery and rotation",
+      "status": "open"
+    },
+    {
+      "id": "R9",
+      "name": "Single-node disk loss",
+      "likelihood": 3,
+      "impact": 5,
+      "owner": "Operations",
+      "mitigation": "Off-node backups",
+      "status": "open"
+    },
+    {
+      "id": "R10",
+      "name": "Legal/tax uncertainty",
+      "likelihood": 3,
+      "impact": 5,
+      "owner": "Governance",
+      "mitigation": "Obtain legal review",
+      "status": "open"
+    }
+  ],
+  "reports": [
+    {
+      "name": "Phase Zero baseline",
+      "path": "PHASE-ZERO.md"
+    },
+    {
+      "name": "Phase One plan",
+      "path": "PHASE-1-PLAN.md"
+    },
+    {
+      "name": "Phase One risk report",
+      "path": "PHASE-1-REPORT.md"
+    },
+    {
+      "name": "Technical bible",
+      "path": "TECH-BIBLE.md"
+    },
+    {
+      "name": "MVP plan",
+      "path": "MVP-PLAN.md"
+    },
+    {
+      "name": "Legal brief",
+      "path": "LEGAL-BRIEF.md"
+    },
+    {
+      "name": "Membership agreement",
+      "path": "MEMBERSHIP-AGREEMENT.md"
+    },
+    {
+      "name": "Bylaws draft",
+      "path": "BYLAWS-DRAFT.md"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "Closed-loop zero-sum credit",
+      "status": "accepted"
+    },
+    {
+      "decision": "One authoritative ledger node",
+      "status": "accepted"
+    },
+    {
+      "decision": "Python canonical for Phase One",
+      "status": "planned"
+    },
+    {
+      "decision": "No implicit issuance",
+      "status": "accepted"
+    },
+    {
+      "decision": "Defer Meshtastic",
+      "status": "accepted"
+    }
+  ]
+}
