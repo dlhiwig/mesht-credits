@@ -1,141 +1,113 @@
-# Beaver Island Credits (BIC) — Off-Grid Community Token Currency
+# mesht-credits
 
-**Created:** March 14, 2026
-**Setting:** Beaver Island, Michigan — 20–50 veteran co-op community
-**Acronym:** BIC
+**Meshtastic transport + auditable mutual-credit ledger for a small closed-loop cooperative.**
 
----
+Offline-first community credits for 20–50 members. Not a cryptocurrency, not a bank, not a cash-out token. A zero-sum accounting system that records who provided value and who received it, carried over LoRa mesh when internet and grid power are unavailable.
 
-## Concept
+Primary inspiration: Roni Bandini’s [Meshtbank](https://github.com/ronibandini/Meshtbank) (MIT, 2025). This project keeps the Meshtastic + low-power hardware idea and replaces the central balance-file model with integer mutual-credit accounting, signed append-only transactions, and explicit co-op governance.
 
-Beaver Island Credits is a **closed-loop, private, off-grid digital token system** for a small, trust-based veterans' community. Not a cryptocurrency — no blockchain, no mining, no global value, no speculation. Think **digitized community IOUs** or **co-op credits** that track who owes what for real-world goods and services.
+## Why this name
 
-**Value is backed by:** Mutual agreement + real assets within the group (not external markets or fiat).
+`mesht-credits` is short, searchable, and precise: Meshtastic provides the communications layer; the credits are a separate, auditable mutual-credit ledger. Alternatives considered (`meshbank-coop`, `meshtastic-credits`) are longer or closer to Bandini’s exact project name. The hyphenated form stays distinct while remaining immediately understandable.
 
----
+## Architecture (three layers)
 
-## Key Characteristics
+| Layer | Responsibility | Initial implementation |
+|-------|----------------|------------------------|
+| **Mesh transport** | Delivery, retries, offline reach | Meshtastic (private channel, DMs) |
+| **Ledger core** | Integer accounting, sequence numbers, signatures, replay protection, atomic commits | Single authoritative node, SQLite (or equivalent durable store) |
+| **Co-op governance** | Enrollment, credit limits, issuance rules, disputes, reconciliation | Member records + admin/core-crew procedures |
 
-| Property | Description |
-|----------|-------------|
-| **Scope** | Local & closed — only usable within Beaver Island community |
-| **Ledger** | Centralized — one trusted "bank" node (or few synced) holds master ledger |
-| **Issuance** | Central — core crew creates tokens when someone contributes value |
-| **Transfers** | P2P via Meshtastic LoRa mesh (long-range, low-power radio) |
-| **Infrastructure** | No internet needed — fully off-grid |
-| **Crypto primitives** | None required — admin PIN/channel encryption + group trust |
-| **Purpose** | Mutual aid with accounting — bridge gaps the mainland economy ignores |
+**Initial release keeps a single authoritative ledger node.** Distributed synchronization adds failure modes that are unnecessary for a 20–50-member co-op. USB or mesh snapshots can be added later for backup and read-only replicas.
 
----
+### Architectural correction from Meshtbank
 
-## How It Works
+Meshtbank stores a float balance per node ID in LittleFS (`/!nodeid.txt`) plus a plain-text history. That is sufficient for a proof of concept but fragile for mutual credit:
 
-1. **Someone contributes value** (supplies propane, catches fish, repairs a roof, provides medical supplies)
-2. **Core crew issues credits** — e.g., "issue 100 credits to Vet X for supplying winter propane"
-3. **Credits transfer P2P** via LoRa mesh messages — `pay !nodeid 50` or `balance`
-4. **Central ledger tracks** all balances and transactions
-5. **Credits spent** on goods/services within the community (firewood, fish shares, boat fuel, meds, labor)
+- Use **integer units** (no floats).
+- Use **digitally signed transactions** (Ed25519).
+- Use an **append-only ledger** with sequence numbers and replay protection.
+- Derive balances from the verified transaction log; do not treat a balance file as the source of truth.
+- Enforce limits atomically inside a transaction before accepting a transfer.
 
-**No cash-out to USD/crypto** — manual bridging possible but rare and risky (in-story).
+An append-only log is not automatically tamper-proof. Signatures prove authorization. Hash chaining, durable storage, and independently retained checkpoints detect unauthorized rewriting of history.
 
----
+## Mutual credit model
 
-## Real-World Inspiration
+Mutual credit (LETS, Sardex-style circuits, WIR-like closed systems, Credit Commons accounting) creates units at the moment of exchange rather than requiring prepaid tokens.
 
-### Meshtbank (Primary)
-- **Creator:** Roni Bandini (~late 2025)
-- **Hardware:** Seeed XIAO nRF52840 + SX1262 + FireBeetle ESP32 (ledger/display)
-- **Function:** Lightweight ledger of user balances and transfers over Meshtastic
-- **Commands:** `pay !nodeid 50`, `balance`
-- **Coverage:** Hackaday, Hackster.io, Reddit /r/meshtastic
-- **Tagline:** "Meshtastic banking system for the apocalypse"
-- **Key insight:** No blockchain bloat — just a central node everyone trusts
+Core rules for this project:
 
-### Other Parallels
-- **BerkShares** (Massachusetts) — local paper currency backed by local banks
-- **Ithaca Hours** — community currency based on labor time
-- **Bristol Pound** (UK) — local digital currency for Bristol businesses
-- **LETS Systems** (Local Exchange Trading Systems) — mutual credit networks
-- **Time-banking apps** — track labor exchanges without money
-- **Burning Man scrip** — event-based token systems
+1. **Zero-sum.** Every transfer debits one member and credits another by the same integer amount. Sum of all member balances is always zero (apart from any explicitly designated system/issuance account if used).
+2. **Credit limits replace prepaid backing.** A member may go negative up to a configured limit. The limit is permission to incur an obligation to the co-op, not free money.
+3. **Closed loop.** Credits are not redeemable for USD, crypto, or external value. They circulate only among enrolled members.
+4. **Governance sets limits and resolves disputes.** The ledger enforces the numbers; the co-op decides membership, limit changes, freezes, and how to handle unpaid obligations.
+5. **Issuance is optional and explicit.** Pure mutual credit needs no minting. If the co-op wants to recognize contributions outside bilateral exchange (e.g., propane run, firewood), that is a separate, signed issuance transaction from a designated account, still kept inside the zero-sum or carefully documented non-zero-sum rule.
 
----
+Relevant precedents (for design, not code reuse):
 
-## Technical Stack (In-Story)
+- LETS / mutual credit: zero-sum accounts, credit limits, community trust.
+- Sardex: closed-loop business mutual credit with turnover-based limits; non-convertible.
+- Credit Commons protocol: nested mutual-credit ledgers; useful for future federation, overkill for v1.
+- Meshtbank: practical Meshtastic transport and hardware reference.
 
-| Component | Hardware/Software |
-|-----------|------------------|
-| **Mesh network** | Meshtastic on LoRa radios |
-| **Bank node** | FireBeetle ESP32 + display |
-| **User nodes** | Seeed XIAO nRF52840 + SX1262 |
-| **Ledger** | Lightweight flat-file or SQLite on bank node |
-| **Security** | Channel encryption + admin PIN |
-| **Range** | LoRa — miles of range, low power |
-| **Power** | Solar/battery (off-grid compatible) |
+## Minimal transaction schema
 
----
+```json
+{
+  "version": 1,
+  "tx_id": "uuid",
+  "sender": "member-001",
+  "recipient": "member-002",
+  "amount": 500,
+  "currency": "BIC",
+  "sequence": 42,
+  "timestamp": "2026-10-09T16:00:00Z",
+  "signature": "base64-ed25519-signature"
+}
+```
 
-## Use Cases (In-Story Economy)
+The signature covers a deterministic encoding of all fields except the signature itself (canonical JSON or CBOR with fixed field order). The ledger verifies the signature, checks the sequence against the sender’s last accepted sequence, enforces integer amount > 0, checks the resulting balances against limits, and commits atomically. Duplicate `tx_id` or sequence is rejected.
 
-| Good/Service | Example Transaction |
-|--------------|---------------------|
-| Firewood | 50 credits per cord |
-| Fish shares | 20 credits per catch share |
-| Roof repairs | 200 credits for labor |
-| Medical supplies | 100 credits per kit |
-| Boat fuel | 30 credits per gallon allocation |
-| Propane | 100 credits per winter supply run |
-| Tool lending | 10 credits per day |
-| Guard/watch duty | 15 credits per shift |
+Identity is a stable member ID bound to an Ed25519 public key, not solely a Meshtastic node ID (node IDs can change). The node ID remains the routing address for mesh delivery.
 
----
+## Implementation order
 
-## Plot Tension Opportunities
+1. Repository renamed to `mesht-credits` (done).
+2. Rewrite this README and related design docs.
+3. Implement and test the ledger core in isolation (no radios).
+4. Integrate Meshtastic transport once the ledger is correct.
+5. Physical LoRa hardware last.
 
-- **Issuance dispute** — Who decides how many credits a contribution is worth? Power dynamics.
-- **Node failure during storm** — Bank node goes offline, no one can transact. Emergency protocol?
-- **Counterfeit attempt** — Someone fakes a `pay` command. How is it detected?
-- **Inflation pressure** — Too many credits issued, goods become scarce. Who pulls the lever?
-- **Trust breakdown** — What happens when the "banker" is accused of favoritism?
-- **External discovery** — Mainland authorities find out about the parallel economy.
-- **Redemption/exit** — A vet wants to leave the island. Can credits convert to anything?
-- **Mesh range limits** — A distant homestead can't reach the bank node. Relay trust?
+### First milestone
 
----
+Two simulated members complete 100 authenticated transactions, including:
 
-## Design Principles
+- duplicate submissions,
+- insufficient funds / limit violations,
+- interrupted writes,
+- ledger recovery from durable storage.
 
-1. **Pragmatic, not revolutionary** — Adaptation of existing open-source tools, not invention
-2. **Trust-based** — Small group where reputation matters more than cryptography
-3. **Off-grid first** — Must work when internet, power grid, and supply chains fail
-4. **Tied to real value** — Every credit represents actual goods/labor contributed
-5. **Low-profile** — Not designed to attract attention from outside
-6. **Simple** — Any veteran can understand and use it, no tech background needed
+Zero accounting discrepancies. Only then move to real Meshtastic nodes.
+
+## Hardware reference (later phase)
+
+Bandini’s proven stack remains a good starting point for the bank node:
+
+- Seeed XIAO nRF52840 + SX1262 (Meshtastic radio)
+- DFRobot FireBeetle 2 ESP32-C6 (or equivalent capable of SQLite / durable storage)
+- Optional small TFT, LiPo + solar
+
+User nodes can be any Meshtastic-compatible device. The ledger does not run on every radio.
+
+## Status
+
+Design and documentation. No ledger implementation yet. Prior documents in this repository (TECH-BIBLE.md, MVP-PLAN.md, etc.) describe the Beaver Island co-op framing and earlier Meshtbank-oriented notes; this README is the current architectural baseline.
+
+## License
+
+To be determined. Meshtbank is MIT; any derivative work should preserve appropriate notices.
 
 ---
 
-## Research & References
-
-- [ ] Meshtbank GitHub repo (Roni Bandini)
-- [ ] Meshtastic documentation — message types, encryption, mesh topology
-- [ ] LoRa hardware specs — range, power consumption, solar compatibility
-- [ ] BerkShares / Ithaca Hours case studies — what worked, what failed
-- [ ] LETS system design documents
-- [ ] Community currency economics — inflation control in closed systems
-- [ ] Beaver Island geography — mesh coverage feasibility, terrain, population
-
----
-
-## Next Steps
-
-- [ ] Research Meshtbank source code and hardware BOM
-- [ ] Map Beaver Island terrain for LoRa mesh coverage modeling
-- [ ] Define the Beaver Island economy — what goods/services, what's scarce, what's abundant
-- [ ] Design the credit issuance governance (who decides, voting, disputes)
-- [ ] Draft the "founding charter" of the Beaver Island Credits system (in-story document)
-- [ ] Identify plot-critical technical failure modes
-- [ ] Create character roles: banker, auditor, merchant, skeptic
-
----
-
-*"The real magic is the off-grid mesh keeping it functional when everything else fails."*
+*Credits are obligations inside a closed co-op, not money. The mesh keeps the ledger reachable when everything else is down.*
