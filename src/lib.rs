@@ -1,2 +1,2 @@
 pub mod ledger;
-pub use ledger::{Ledger, Transfer, LedgerError, canonical_message};
+pub use ledger::{canonical_message, Ledger, LedgerError, Transfer};

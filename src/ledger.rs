@@ -11,7 +11,9 @@ pub enum LedgerError {
     Corrupt,
 }
 impl From<rusqlite::Error> for LedgerError {
-    fn from(e: rusqlite::Error) -> Self { Self::Database(e) }
+    fn from(e: rusqlite::Error) -> Self {
+        Self::Database(e)
+    }
 }
 pub type Result<T> = std::result::Result<T, LedgerError>;
 
@@ -33,13 +35,17 @@ fn field(out: &mut Vec<u8>, value: &str) {
 }
 pub fn canonical_message(t: &Transfer) -> Vec<u8> {
     let mut out = b"mesht-credits/transfer/v1\0".to_vec();
-    for v in [&t.tx_id, &t.sender, &t.recipient, &t.timestamp] { field(&mut out, v); }
+    for v in [&t.tx_id, &t.sender, &t.recipient, &t.timestamp] {
+        field(&mut out, v);
+    }
     out.extend_from_slice(&t.amount.to_be_bytes());
     out.extend_from_slice(&t.sequence.to_be_bytes());
     out
 }
 
-pub struct Ledger { db: Connection }
+pub struct Ledger {
+    db: Connection,
+}
 impl Ledger {
     pub fn open(path: impl AsRef<Path>) -> Result<Self> {
         let db = Connection::open(path)?;
@@ -66,48 +72,112 @@ impl Ledger {
         Ok(Self { db })
     }
     // Administrative enrollment is out-of-band in M1. Restrict access to the ledger database.
-    pub fn enroll(&self, id: &str, key: &[u8;32], credit_limit: i64) -> Result<()> {
-        if id.is_empty() || credit_limit < 0 { return Err(LedgerError::Invalid("invalid member")); }
-        self.db.execute("INSERT INTO members(id,public_key,credit_limit) VALUES (?1,?2,?3)",
-            params![id, key.as_slice(), credit_limit])?;
+    pub fn enroll(&self, id: &str, key: &[u8; 32], credit_limit: i64) -> Result<()> {
+        if id.is_empty() || credit_limit < 0 {
+            return Err(LedgerError::Invalid("invalid member"));
+        }
+        self.db.execute(
+            "INSERT INTO members(id,public_key,credit_limit) VALUES (?1,?2,?3)",
+            params![id, key.as_slice(), credit_limit],
+        )?;
         Ok(())
     }
     pub fn balance(&self, member: &str) -> Result<i64> {
-        let exists: bool = self.db.query_row("SELECT EXISTS(SELECT 1 FROM members WHERE id=?1)", [member], |r| r.get(0))?;
-        if !exists { return Err(LedgerError::Invalid("unknown member")); }
-        let outgoing: i64 = self.db.query_row("SELECT COALESCE(SUM(amount),0) FROM transfers WHERE sender=?1", [member], |r| r.get(0))?;
-        let incoming: i64 = self.db.query_row("SELECT COALESCE(SUM(amount),0) FROM transfers WHERE recipient=?1", [member], |r| r.get(0))?;
-        incoming.checked_sub(outgoing).ok_or(LedgerError::Invalid("balance overflow"))
+        let exists: bool = self.db.query_row(
+            "SELECT EXISTS(SELECT 1 FROM members WHERE id=?1)",
+            [member],
+            |r| r.get(0),
+        )?;
+        if !exists {
+            return Err(LedgerError::Invalid("unknown member"));
+        }
+        let outgoing: i64 = self.db.query_row(
+            "SELECT COALESCE(SUM(amount),0) FROM transfers WHERE sender=?1",
+            [member],
+            |r| r.get(0),
+        )?;
+        let incoming: i64 = self.db.query_row(
+            "SELECT COALESCE(SUM(amount),0) FROM transfers WHERE recipient=?1",
+            [member],
+            |r| r.get(0),
+        )?;
+        incoming
+            .checked_sub(outgoing)
+            .ok_or(LedgerError::Invalid("balance overflow"))
     }
     pub fn apply(&mut self, t: &Transfer) -> Result<()> {
         if t.amount <= 0 || t.sequence <= 0 || t.sender == t.recipient || t.tx_id.is_empty() {
             return Err(LedgerError::Invalid("invalid transfer"));
         }
-        let tx = self.db.transaction_with_behavior(TransactionBehavior::Immediate)?;
-        let sender: Option<(Vec<u8>, i64, i64)> = tx.query_row(
-            "SELECT public_key,credit_limit,frozen FROM members WHERE id=?1",
-            [&t.sender], |r| Ok((r.get(0)?,r.get(1)?,r.get(2)?))).optional()?;
+        let tx = self
+            .db
+            .transaction_with_behavior(TransactionBehavior::Immediate)?;
+        let sender: Option<(Vec<u8>, i64, i64)> = tx
+            .query_row(
+                "SELECT public_key,credit_limit,frozen FROM members WHERE id=?1",
+                [&t.sender],
+                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+            )
+            .optional()?;
         let (key, limit, frozen) = sender.ok_or(LedgerError::Invalid("unknown sender"))?;
-        let recipient_frozen: Option<i64> = tx.query_row(
-            "SELECT frozen FROM members WHERE id=?1", [&t.recipient], |r| r.get(0)).optional()?;
-        if frozen != 0 || recipient_frozen != Some(0) { return Err(LedgerError::Invalid("frozen or unknown recipient")); }
-        let key: [u8;32] = key.try_into().map_err(|_| LedgerError::Corrupt)?;
+        let recipient_frozen: Option<i64> = tx
+            .query_row(
+                "SELECT frozen FROM members WHERE id=?1",
+                [&t.recipient],
+                |r| r.get(0),
+            )
+            .optional()?;
+        if frozen != 0 || recipient_frozen != Some(0) {
+            return Err(LedgerError::Invalid("frozen or unknown recipient"));
+        }
+        let key: [u8; 32] = key.try_into().map_err(|_| LedgerError::Corrupt)?;
         let vk = VerifyingKey::from_bytes(&key).map_err(|_| LedgerError::Signature)?;
-        vk.verify(&canonical_message(t), &Signature::from_bytes(&t.signature)).map_err(|_| LedgerError::Signature)?;
-        let prior: i64 = tx.query_row("SELECT COALESCE(MAX(sequence),0) FROM transfers WHERE sender=?1", [&t.sender], |r| r.get(0))?;
-        if t.sequence != prior.checked_add(1).ok_or(LedgerError::Invalid("sequence overflow"))? {
+        vk.verify(&canonical_message(t), &Signature::from_bytes(&t.signature))
+            .map_err(|_| LedgerError::Signature)?;
+        let prior: i64 = tx.query_row(
+            "SELECT COALESCE(MAX(sequence),0) FROM transfers WHERE sender=?1",
+            [&t.sender],
+            |r| r.get(0),
+        )?;
+        if t.sequence
+            != prior
+                .checked_add(1)
+                .ok_or(LedgerError::Invalid("sequence overflow"))?
+        {
             return Err(LedgerError::Invalid("sequence mismatch"));
         }
         let balance = |id: &str| -> Result<i64> {
-            let incoming: i64 = tx.query_row("SELECT COALESCE(SUM(amount),0) FROM transfers WHERE recipient=?1", [id], |r| r.get(0))?;
-            let outgoing: i64 = tx.query_row("SELECT COALESCE(SUM(amount),0) FROM transfers WHERE sender=?1", [id], |r| r.get(0))?;
-            incoming.checked_sub(outgoing).ok_or(LedgerError::Invalid("balance overflow"))
+            let incoming: i64 = tx.query_row(
+                "SELECT COALESCE(SUM(amount),0) FROM transfers WHERE recipient=?1",
+                [id],
+                |r| r.get(0),
+            )?;
+            let outgoing: i64 = tx.query_row(
+                "SELECT COALESCE(SUM(amount),0) FROM transfers WHERE sender=?1",
+                [id],
+                |r| r.get(0),
+            )?;
+            incoming
+                .checked_sub(outgoing)
+                .ok_or(LedgerError::Invalid("balance overflow"))
         };
-        let next_sender = balance(&t.sender)?.checked_sub(t.amount).ok_or(LedgerError::Invalid("balance overflow"))?;
-        balance(&t.recipient)?.checked_add(t.amount).ok_or(LedgerError::Invalid("balance overflow"))?;
-        if next_sender < -limit { return Err(LedgerError::Invalid("credit limit exceeded")); }
-        let previous: Option<Vec<u8>> = tx.query_row("SELECT entry_hash FROM transfers ORDER BY ordinal DESC LIMIT 1", [], |r| r.get(0)).optional()?;
-        let prev_hash = previous.unwrap_or_else(|| vec![0;32]);
+        let next_sender = balance(&t.sender)?
+            .checked_sub(t.amount)
+            .ok_or(LedgerError::Invalid("balance overflow"))?;
+        balance(&t.recipient)?
+            .checked_add(t.amount)
+            .ok_or(LedgerError::Invalid("balance overflow"))?;
+        if next_sender < -limit {
+            return Err(LedgerError::Invalid("credit limit exceeded"));
+        }
+        let previous: Option<Vec<u8>> = tx
+            .query_row(
+                "SELECT entry_hash FROM transfers ORDER BY ordinal DESC LIMIT 1",
+                [],
+                |r| r.get(0),
+            )
+            .optional()?;
+        let prev_hash = previous.unwrap_or_else(|| vec![0; 32]);
         let mut digest = Sha256::new();
         digest.update(b"mesht-credits/entry/v1\0");
         digest.update(&prev_hash);
@@ -122,37 +192,68 @@ impl Ledger {
     pub fn verify(&self) -> Result<()> {
         let mut stmt = self.db.prepare("SELECT tx_id,sender,recipient,amount,sequence,timestamp,signature,prev_hash,entry_hash FROM transfers ORDER BY ordinal")?;
         let mut rows = stmt.query([])?;
-        let mut previous = vec![0u8;32];
-        let mut balances: BTreeMap<String,i128> = BTreeMap::new();
-        let mut sequences: BTreeMap<String,i64> = BTreeMap::new();
+        let mut previous = vec![0u8; 32];
+        let mut balances: BTreeMap<String, i128> = BTreeMap::new();
+        let mut sequences: BTreeMap<String, i64> = BTreeMap::new();
         while let Some(row) = rows.next()? {
             let sig: Vec<u8> = row.get(6)?;
-            let signature: [u8;64] = sig.try_into().map_err(|_| LedgerError::Corrupt)?;
-            let t = Transfer { tx_id:row.get(0)?, sender:row.get(1)?,recipient:row.get(2)?,amount:row.get(3)?,sequence:row.get(4)?,timestamp:row.get(5)?,signature };
+            let signature: [u8; 64] = sig.try_into().map_err(|_| LedgerError::Corrupt)?;
+            let t = Transfer {
+                tx_id: row.get(0)?,
+                sender: row.get(1)?,
+                recipient: row.get(2)?,
+                amount: row.get(3)?,
+                sequence: row.get(4)?,
+                timestamp: row.get(5)?,
+                signature,
+            };
             let prev: Vec<u8> = row.get(7)?;
             let hash: Vec<u8> = row.get(8)?;
-            if prev != previous || t.amount <= 0 || t.sender == t.recipient { return Err(LedgerError::Corrupt); }
-            let key: Vec<u8> = self.db.query_row("SELECT public_key FROM members WHERE id=?1", [&t.sender], |r| r.get(0)).map_err(|_| LedgerError::Corrupt)?;
-            let key: [u8;32] = key.try_into().map_err(|_| LedgerError::Corrupt)?;
+            if prev != previous || t.amount <= 0 || t.sender == t.recipient {
+                return Err(LedgerError::Corrupt);
+            }
+            let key: Vec<u8> = self
+                .db
+                .query_row(
+                    "SELECT public_key FROM members WHERE id=?1",
+                    [&t.sender],
+                    |r| r.get(0),
+                )
+                .map_err(|_| LedgerError::Corrupt)?;
+            let key: [u8; 32] = key.try_into().map_err(|_| LedgerError::Corrupt)?;
             let vk = VerifyingKey::from_bytes(&key).map_err(|_| LedgerError::Corrupt)?;
-            vk.verify(&canonical_message(&t), &Signature::from_bytes(&t.signature)).map_err(|_| LedgerError::Corrupt)?;
-            let next = sequences.get(&t.sender).copied().unwrap_or(0).checked_add(1).ok_or(LedgerError::Corrupt)?;
-            if t.sequence != next { return Err(LedgerError::Corrupt); }
+            vk.verify(&canonical_message(&t), &Signature::from_bytes(&t.signature))
+                .map_err(|_| LedgerError::Corrupt)?;
+            let next = sequences
+                .get(&t.sender)
+                .copied()
+                .unwrap_or(0)
+                .checked_add(1)
+                .ok_or(LedgerError::Corrupt)?;
+            if t.sequence != next {
+                return Err(LedgerError::Corrupt);
+            }
             sequences.insert(t.sender.clone(), next);
             let mut digest = Sha256::new();
             digest.update(b"mesht-credits/entry/v1\0");
             digest.update(&previous);
             digest.update(canonical_message(&t));
             digest.update(t.signature);
-            if digest.finalize().as_slice() != hash { return Err(LedgerError::Corrupt); }
+            if digest.finalize().as_slice() != hash {
+                return Err(LedgerError::Corrupt);
+            }
             *balances.entry(t.sender).or_default() -= i128::from(t.amount);
             *balances.entry(t.recipient).or_default() += i128::from(t.amount);
             previous = hash;
         }
-        if balances.values().sum::<i128>() != 0 { return Err(LedgerError::Corrupt); }
+        if balances.values().sum::<i128>() != 0 {
+            return Err(LedgerError::Corrupt);
+        }
         Ok(())
     }
     pub fn count(&self) -> Result<i64> {
-        Ok(self.db.query_row("SELECT COUNT(*) FROM transfers", [], |r| r.get(0))?)
+        Ok(self
+            .db
+            .query_row("SELECT COUNT(*) FROM transfers", [], |r| r.get(0))?)
     }
 }
