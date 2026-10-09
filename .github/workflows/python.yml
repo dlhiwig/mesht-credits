@@ -17,3 +17,4 @@ jobs:
       - run: python3 test_milestone.py
       - run: python3 test_phases.py
       - run: python3 test_phase12.py
+      - run: python3 test_phase34.py

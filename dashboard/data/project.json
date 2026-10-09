@@ -203,72 +203,72 @@
       "id": "G20",
       "phase": "P3",
       "name": "Hardware bill of materials",
-      "status": "not_started",
+      "status": "passed",
       "owner": "Systems engineering",
-      "evidence": null,
+      "evidence": "HARDWARE-BOM.md",
       "acceptance": "Demonstrate hardware bill of materials with reviewed test or approval evidence"
     },
     {
       "id": "G21",
       "phase": "P3",
       "name": "Offline radio transfer",
-      "status": "not_started",
+      "status": "partial",
       "owner": "Systems engineering",
-      "evidence": null,
+      "evidence": "radio_port.py",
       "acceptance": "Demonstrate offline radio transfer with reviewed test or approval evidence"
     },
     {
       "id": "G22",
       "phase": "P3",
       "name": "Power-loss on hardware",
-      "status": "not_started",
+      "status": "partial",
       "owner": "Systems engineering",
-      "evidence": null,
+      "evidence": "test_phase34.py",
       "acceptance": "Demonstrate power-loss on hardware with reviewed test or approval evidence"
     },
     {
       "id": "G23",
       "phase": "P3",
       "name": "Radio reliability report",
-      "status": "not_started",
+      "status": "partial",
       "owner": "Systems engineering",
-      "evidence": null,
+      "evidence": "RADIO-RELIABILITY.md",
       "acceptance": "Demonstrate radio reliability report with reviewed test or approval evidence"
     },
     {
       "id": "G24",
       "phase": "P4",
       "name": "Member onboarding",
-      "status": "not_started",
+      "status": "partial",
       "owner": "Operations / governance",
-      "evidence": null,
+      "evidence": "test_phase34.py",
       "acceptance": "Demonstrate member onboarding with reviewed test or approval evidence"
     },
     {
       "id": "G25",
       "phase": "P4",
       "name": "Dispute and reconciliation",
-      "status": "not_started",
+      "status": "passed",
       "owner": "Operations / governance",
-      "evidence": null,
+      "evidence": "test_phase34.py",
       "acceptance": "Demonstrate dispute and reconciliation with reviewed test or approval evidence"
     },
     {
       "id": "G26",
       "phase": "P4",
       "name": "Controlled test-credit pilot",
-      "status": "not_started",
+      "status": "partial",
       "owner": "Operations / governance",
-      "evidence": null,
+      "evidence": "PHASE-4.md",
       "acceptance": "Demonstrate controlled test-credit pilot with reviewed test or approval evidence"
     },
     {
       "id": "G27",
       "phase": "P4",
       "name": "Incident response drill",
-      "status": "not_started",
+      "status": "partial",
       "owner": "Operations / governance",
-      "evidence": null,
+      "evidence": "test_phase34.py",
       "acceptance": "Demonstrate incident response drill with reviewed test or approval evidence"
     },
     {

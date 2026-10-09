@@ -1,29 +1,17 @@
-# Phase 4 — Operator release
+# Phase 4 report
 
-**Status:** Shipped as a local operator node. Not a public currency release.
+**Date:** 2026-10-09
+**Status:** Tabletop drills only. No live members.
 
-## What shipped
+## Done
 
-- `mesht_cli.py` — keygen, enroll, transfer, freeze, reconcile.
-- `.github/workflows/python.yml` — installs `pynacl` and runs `test_milestone.py` and `test_phases.py` on `main` and pull requests.
-- Python remains the only authoritative ledger. Rust PR #1 is still a draft reference.
+- Onboarding drill: five members enrolled with keys and credit limits, then three transfers. System sum stayed 0.
+- Dispute drill: a signed dispute records the `tx_id` and does not change balances.
+- Incident drill: radio-port power cut, reopen, chain verifies.
+- Evidence: `test_phase34.py`.
 
-## How to run
+## Not done
 
-```bash
-pip install -r requirements.txt
-python3 test_milestone.py
-python3 test_phases.py
-python3 mesht_cli.py --db mesht.db reconcile
-```
-
-## Out the door means
-
-A co-op operator can run one SQLite node, enroll members, accept signed transfers, freeze an account, export a checkpoint, and reject a rewritten journal. It does not mean hardware, internet-facing service, cash-out, or production custody of value.
-
-## Still deferred
-
-- Meshtastic radio integration.
-- Rust replacement of this node.
-- Issuance.
-- Legal sign-off of the bylaws against this ledger.
+- No controlled pilot with real members or test credits in the field.
+- No incident drill with an operator on a clock.
+- Release gates in Phase 5 are untouched.
