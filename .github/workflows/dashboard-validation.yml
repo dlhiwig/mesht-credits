@@ -1,0 +1,22 @@
+name: Dashboard validation
+on:
+  push:
+    paths:
+      - 'dashboard/**'
+      - '.github/workflows/dashboard-validation.yml'
+  pull_request:
+    paths:
+      - 'dashboard/**'
+      - '.github/workflows/dashboard-validation.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate dashboard data
+        run: python3 dashboard/scripts/validate.py
