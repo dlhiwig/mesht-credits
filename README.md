@@ -6,6 +6,12 @@ Offline-first community credits for 20–50 members. Not a cryptocurrency, not a
 
 Primary inspiration: Roni Bandini’s [Meshtbank](https://github.com/ronibandini/Meshtbank) (MIT, 2025). This project keeps the Meshtastic + low-power hardware idea and replaces the central balance-file model with integer mutual-credit accounting, signed append-only transactions, and explicit co-op governance.
 
+
+
+## Phase status (2026-10-09)
+
+Python on `main` is the authoritative ledger. Phase 2 is a local signed mesh envelope, not a radio. Phase 3 adds the governance journal, atomic freeze check, append-only triggers, and checkpoints. Phase 4 adds the operator CLI and Python CI. See `PHASE-2.md`, `PHASE-3.md`, and `PHASE-4.md`. Meshtastic hardware is still deferred.
+
 ## Why this name
 
 `mesht-credits` is short, searchable, and precise: Meshtastic provides the communications layer; the credits are a separate, auditable mutual-credit ledger. Alternatives considered (`meshbank-coop`, `meshtastic-credits`) are longer or closer to Bandini’s exact project name. The hyphenated form stays distinct while remaining immediately understandable.
