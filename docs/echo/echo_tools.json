@@ -1,0 +1,87 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "get_balance",
+      "description": "Read-only: return current integer balance, credit limit, and frozen status for a member from the latest ledger checkpoint export.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "member_id": { "type": "string", "description": "Member ID" }
+        },
+        "required": ["member_id"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_member_history",
+      "description": "Read-only: return recent signed transactions involving a member (as sender or recipient) from the append-only log via checkpoint.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "member_id": { "type": "string" },
+          "limit": { "type": "integer", "description": "Max transactions to return, default 20", "default": 20 }
+        },
+        "required": ["member_id"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "list_freezes",
+      "description": "Read-only: list members currently frozen by governance events.",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "submit_issuance",
+      "description": "Propose a signed governance issuance event. Does not apply directly; produces a payload that must be signed by an authorized admin and submitted via the ledger API. Echo never holds signing keys.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "member_id": { "type": "string", "description": "Recipient of issuance" },
+          "amount": { "type": "integer", "description": "Positive integer amount in BIC units" },
+          "reason": { "type": "string", "description": "Short justification for the issuance (e.g., community service)" }
+        },
+        "required": ["member_id", "amount", "reason"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "broadcast_mesh_text",
+      "description": "Queue an outbound plain-text message for delivery over the Meshtastic mesh channel. Mesh is a delivery channel only; does not affect the ledger.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "text": { "type": "string", "description": "Message body (keep short for LoRa)" },
+          "target": { "type": "string", "description": "Optional: 'all' or a specific node ID / member ID for directed message", "default": "all" }
+        },
+        "required": ["text"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "query_weather",
+      "description": "Fetch current or short-term weather for Beaver Island (or specified location) to inform community messages or med-reminders. External call; not ledger-related.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": { "type": "string", "description": "Default: Beaver Island, MI", "default": "Beaver Island, MI" },
+          "forecast_hours": { "type": "integer", "default": 24 }
+        }
+      }
+    }
+  }
+]
